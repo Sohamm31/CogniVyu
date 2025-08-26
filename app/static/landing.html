@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CogniVyu - Your Personal AI Assistant</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --bg-color: #f8f9fa;
+            --primary-color: #ffffff;
+            --accent-color: #0d9488; 
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container { width: 90%; max-width: 1200px; margin: 0 auto; }
+        header { padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent-color); text-decoration: none; }
+
+        .header-nav { display: flex; align-items: center; gap: 1rem; }
+        #username-display { font-weight: 600; color: var(--text-color); }
+        .nav-btn {
+            background-color: transparent;
+            color: var(--accent-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid var(--accent-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+        }
+        .nav-btn:hover { background-color: var(--accent-color); color: var(--primary-color); }
+        .hidden { display: none !important; }
+
+        main.hero { padding: 6rem 0; text-align: center; }
+        .hero-content { animation: fadeIn 1s ease-in-out; }
+        .hero h1 { font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; color: var(--text-color); }
+        .hero p { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-muted); max-width: 650px; margin: 0 auto 2.5rem; }
+        .cta-btn { background-color: var(--accent-color); color: var(--primary-color); padding: 1rem 2.5rem; border-radius: 50px; text-decoration: none; font-size: 1.1rem; font-weight: 700; transition: all 0.3s ease; display: inline-block; border: 2px solid var(--accent-color); }
+        .cta-btn:hover { background-color: transparent; color: var(--accent-color); transform: translateY(-3px); }
+        
+        .agents-section { padding: 4rem 0; background-color: var(--primary-color); border-top: 1px solid var(--border-color); }
+        .agents-section h2 { text-align: center; font-size: 2rem; margin-bottom: 3rem; color: var(--text-color); }
+        .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        .agent-card { background-color: var(--bg-color); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .agent-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .agent-card .icon { color: var(--accent-color); width: 48px; height: 48px; margin-bottom: 1rem; }
+        .agent-card h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .agent-card p { color: var(--text-muted); font-size: 0.95rem; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <header class="container">
+        <a href="/" class="logo">CogniVyu</a>
+        <div class="header-nav">
+            <div id="user-info" class="header-nav hidden">
+                <span id="username-display"></span>
+                <button id="logout-btn" class="nav-btn">Logout</button>
+            </div>
+            <a href="/static/auth.html" id="login-link" class="nav-btn">Login</a>
+        </div>
+    </header>
+
+    <main class="hero container">
+        <div class="hero-content">
+            <h1>Your Personal AI, Supercharged.</h1>
+            <p>From finance and travel to medical wellness, get instant, practical answers from an AI that understands your world.</p>
+            <a href="/static/chatbot.html" id="cta-link" class="cta-btn">Start Chatting</a>
+        </div>
+    </main>
+
+    <section class="agents-section">
+        <div class="container">
+            <h2>Explore Our Agents</h2>
+            <div class="agents-grid">
+                <div class="agent-card">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" /></svg>
+                    <h3>Finance & Budgeting</h3>
+                    <p>Get clear insights on managing your money, creating budgets, and understanding complex investment topics.</p>
+                </div>
+                <div class="agent-card">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c.34 0 .672-.015 1-.042M12 21c-.34 0-.672-.015-1-.042M12 3a9.004 9.004 0 0 0-8.716 6.747M12 3a9.004 9.004 0 0 1 8.716 6.747M12 3c.34 0 .672-.015 1 .042M12 3c-.34 0-.672-.015-1 .042M4.93 19.07A9.001 9.001 0 0 1 12 5.93m0 0A9.003 9.003 0 0 1 19.07 19.07M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                    <h3>Travel & Local Guide</h3>
+                    <p>Plan your next adventure with tips on destinations, budget-friendly travel, and hidden local gems.</p>
+                </div>
+                <div class="agent-card">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                    <h3>Home & DIY</h3>
+                    <p>Tackle home projects with confidence. Get step-by-step guidance on repairs, maintenance, and improvements.</p>
+                </div>
+                <div class="agent-card">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
+                    <h3>Health & Wellness</h3>
+                    <p>Find reliable information on managing stress, improving sleep, and making informed decisions for a healthier lifestyle.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const API_URL = 'http://127.0.0.1:8000';
+            const accessToken = localStorage.getItem('accessToken');
+
+            const loginLink = document.getElementById('login-link');
+            const userInfoDiv = document.getElementById('user-info');
+            const usernameDisplay = document.getElementById('username-display');
+            const logoutBtn = document.getElementById('logout-btn');
+            const ctaLink = document.getElementById('cta-link');
+
+            if (accessToken) {
+                try {
+                    const response = await fetch(`${API_URL}/users/me`, {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        
+                        loginLink.classList.add('hidden');
+                        userInfoDiv.classList.remove('hidden');
+                        usernameDisplay.textContent = `${userData.username}`;
+                        
+                        ctaLink.textContent = "Go to Chat";
+
+                    } else {
+                        localStorage.removeItem('accessToken');
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                    localStorage.removeItem('accessToken');
+                }
+            }
+            
+            if(logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    localStorage.removeItem('accessToken');
+                    window.location.reload(); 
+                });
+            }
+
+            if (!localStorage.getItem('accessToken')) {
+                ctaLink.href = "/static/auth.html";
+                ctaLink.textContent = "Get Started for Free";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - CogniVyu</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        :root {
+            --bg-color: #f8f9fa; --primary-color: #ffffff; --accent-color: #0d9488;
+            --text-color: #212529; --text-muted: #6c757d; --border-color: #dee2e6;
+            --user-msg-bg: #e9ecef; --bot-msg-bg: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; position: relative; }
+        .chatbot-container { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 260px; background-color: #e9ecef; padding: 1.5rem; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); transition: transform 0.3s ease-in-out; z-index: 100; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .logo-link { text-decoration: none; }
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent-color); cursor: pointer; }
+        .new-chat-btn { background: var(--primary-color); border: 1px solid var(--border-color); color: var(--text-color); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; line-height: 1; display: grid; place-items: center; }
+        .history-list { list-style: none; overflow-y: auto; flex-grow: 1; padding-right: 10px; }
+        .history-item { padding: 0.75rem; margin-bottom: 0.5rem; border-radius: 8px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background-color 0.2s; color: var(--text-muted); font-weight: 500;}
+        .history-item:hover { background-color: #dee2e6; }
+        .history-item.active { background-color: var(--accent-color); color: white; font-weight: 600; }
+        .chat-main { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; background-color: var(--primary-color); }
+        .chat-header { padding: 1rem 1.5rem; background-color: var(--primary-color); display: flex; justify-content: flex-end; align-items: center; border-bottom: 1px solid var(--border-color); }
+        #hamburger-btn { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+        #hamburger-btn svg { width: 24px; height: 24px; color: var(--text-muted); }
+        .header-left { display: none; align-items: center; gap: 1rem; }
+        .header-right { display: flex; align-items: center; }
+        .logout-btn { background: var(--user-msg-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { background-color: #ced4da; }
+        .chat-window { flex-grow: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .message { max-width: 75%; padding: 1rem; border-radius: 12px; line-height: 1.6; animation: popIn 0.3s; border: 1px solid var(--border-color); }
+        .user-message { background-color: var(--user-msg-bg); color: var(--text-color); align-self: flex-end; border-bottom-right-radius: 0; }
+        .bot-message { background-color: var(--bot-msg-bg); align-self: flex-start; border-bottom-left-radius: 0; }
+        .bot-message .domain { font-size: 0.8rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .chat-input-container { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background-color: var(--primary-color); }
+        .chat-input-form { display: flex; gap: 1rem; align-items: center; background-color: var(--bg-color); border-radius: 12px; padding: 0.5rem; border: 1px solid var(--border-color); }
+        .agent-selector { position: relative; }
+        #agent-selector-btn { background-color: transparent; border: none; color: var(--text-color); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; width: 150px; text-align: left; }
+        #agent-selector-menu { position: absolute; bottom: 110%; left: 0; background-color: var(--primary-color); border-radius: 8px; list-style: none; width: 200px; padding: 0.5rem; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 10; transition: opacity 0.2s, transform 0.2s; border: 1px solid var(--border-color); }
+        #agent-selector-menu.hidden { opacity: 0; visibility: hidden; transform: translateY(10px); }
+        .agent-option { padding: 0.75rem; border-radius: 6px; cursor: pointer; }
+        .agent-option:hover { background-color: var(--bg-color); }
+        #chat-input { flex-grow: 1; background-color: transparent; border: none; padding: 0.8rem 1rem; color: var(--text-color); font-size: 1rem; }
+        #chat-input:focus { outline: none; }
+        #send-btn { background: var(--accent-color); border: none; border-radius: 8px; padding: 0; cursor: pointer; color: var(--primary-color); width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0;}
+        #send-btn svg { width: 24px; height: 24px; }
+        .bot-message h1, .bot-message h2, .bot-message h3 { margin-bottom: 0.5rem; line-height: 1.3; }
+        .bot-message ul, .bot-message ol { padding-left: 20px; margin-top: 0.5rem; }
+        .bot-message li { margin-bottom: 0.25rem; }
+        .bot-message p { margin-bottom: 0.5rem; }
+        .bot-message p:last-child { margin-bottom: 0; }
+        .bot-message strong { color: var(--accent-color); font-weight: 600; }
+        .bot-message code { background-color: var(--bg-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .typing-indicator { align-self: flex-start; display: flex; gap: 5px; padding: 1rem; }
+        .typing-indicator span { width: 10px; height: 10px; background-color: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        #mobile-agent-btn { display: none; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted); width: 40px; height: 40px; border-radius: 8px; cursor: pointer; flex-shrink: 0; place-items: center; }
+        #mobile-agent-btn svg { width: 24px; height: 24px; }
+        #agent-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: grid; place-items: center; z-index: 200; opacity: 1; transition: opacity 0.2s; }
+        #agent-modal-overlay.hidden { opacity: 0; visibility: hidden; }
+        #agent-modal { background: var(--primary-color); padding: 1.5rem; border-radius: 12px; width: 90%; max-width: 350px; }
+        #agent-modal h3 { margin-bottom: 1rem; text-align: center; }
+        #agent-modal-list { list-style: none; }
+        .modal-agent-option { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-radius: 8px; cursor: pointer; }
+        .modal-agent-option:hover { background-color: var(--bg-color); }
+        .checkmark-icon { color: var(--accent-color); width: 20px; height: 20px; }
+        .checkmark-icon.hidden { display: none; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        @media (max-width: 768px) {
+            .sidebar { position: absolute; height: 100%; transform: translateX(-100%); box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
+            .sidebar.open { transform: translateX(0); }
+            #hamburger-btn, .header-left { display: flex; }
+            .chat-header { justify-content: space-between; }
+            .agent-selector { display: none; }
+            #mobile-agent-btn { display: grid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="logo-link"><div class="logo">CogniVyu</div></a>
+                <button class="new-chat-btn" id="new-chat-btn" title="New Chat">+</button>
+            </div>
+            <ul class="history-list" id="history-list"></ul>
+        </aside>
+
+        <main class="chat-main">
+            <header class="chat-header">
+                <div class="header-left">
+                    <button id="hamburger-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                    </button>
+                </div>
+                <div class="header-right">
+                    <button id="logout-btn" class="logout-btn">Logout</button>
+                </div>
+            </header>
+            <div class="chat-window" id="chat-window"></div>
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chat-form">
+                    <button type="button" id="mobile-agent-btn" title="Select Agent">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    </button>
+                    <div class="agent-selector">
+                        <button type="button" id="agent-selector-btn">Auto Detect</button>
+                        <ul id="agent-selector-menu" class="hidden">
+                            <li class="agent-option" data-domain="auto">Auto Detect</li>
+                            <li class="agent-option" data-domain="Finance & Budgeting">Finance & Budgeting</li>
+                            <li class="agent-option" data-domain="Travel & Local Guide">Travel & Local Guide</li>
+                            <li class="agent-option" data-domain="Home & DIY">Home & DIY</li>
+                            <li class="agent-option" data-domain="Health & Wellness">Health & Wellness</li>
+                        </ul>
+                    </div>
+                    <input type="text" id="chat-input" placeholder="Ask me anything..." required autocomplete="off">
+                    <button type="submit" id="send-btn">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div id="agent-modal-overlay" class="hidden">
+        <div id="agent-modal">
+            <h3>Select an Agent</h3>
+            <ul id="agent-modal-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const logoutBtn = document.getElementById('logout-btn');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const historyList = document.getElementById('history-list');
+        const agentSelectorBtn = document.getElementById('agent-selector-btn');
+        const agentSelectorMenu = document.getElementById('agent-selector-menu');
+        const agentOptions = document.querySelectorAll('.agent-option');
+        const mobileAgentBtn = document.getElementById('mobile-agent-btn');
+        const agentModalOverlay = document.getElementById('agent-modal-overlay');
+        const agentModalList = document.getElementById('agent-modal-list');
+        const checkmarkSVG = `<svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`;
+        const sidebar = document.getElementById('sidebar');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        let activeDomain = 'auto';
+        let activeConversationId = null;
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) window.location.href = '/static/auth.html';
+
+        document.addEventListener('DOMContentLoaded', () => { loadConversations(); handleMobileLayout(); populateAgentModal(); });
+        window.addEventListener('resize', handleMobileLayout);
+        logoutBtn.addEventListener('click', () => { localStorage.removeItem('accessToken'); window.location.href = '/static/auth.html'; });
+        newChatBtn.addEventListener('click', startNewConversation);
+        chatForm.addEventListener('submit', handleSendMessage);
+        hamburgerBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+        chatWindow.addEventListener('click', () => sidebar.classList.remove('open'));
+        agentSelectorBtn.addEventListener('click', () => agentSelectorMenu.classList.toggle('hidden'));
+        agentOptions.forEach(option => { option.addEventListener('click', () => { activeDomain = option.dataset.domain; agentSelectorBtn.textContent = option.textContent; agentSelectorMenu.classList.add('hidden'); }); });
+        document.addEventListener('click', (event) => { if (!agentSelectorBtn.contains(event.target) && !agentSelectorMenu.contains(event.target)) agentSelectorMenu.classList.add('hidden'); });
+        mobileAgentBtn.addEventListener('click', openAgentModal);
+        agentModalOverlay.addEventListener('click', (event) => { if (event.target === agentModalOverlay) agentModalOverlay.classList.add('hidden'); });
+
+        function handleMobileLayout() {
+            const logoLink = document.querySelector('.logo-link');
+            const sidebarHeader = document.querySelector('.sidebar-header');
+            const mobileHeaderLeft = document.querySelector('.header-left');
+            if (window.innerWidth <= 768) {
+                if (logoLink && !mobileHeaderLeft.contains(logoLink)) mobileHeaderLeft.appendChild(logoLink);
+            } else {
+                if (logoLink && !sidebarHeader.contains(logoLink)) {
+                    sidebarHeader.insertBefore(logoLink, sidebarHeader.firstChild);
+                    sidebar.classList.remove('open');
+                }
+            }
+        }
+
+        function populateAgentModal() {
+            agentModalList.innerHTML = '';
+            agentOptions.forEach(option => {
+                const li = document.createElement('li');
+                li.className = 'modal-agent-option';
+                li.dataset.domain = option.dataset.domain;
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = option.textContent;
+                const checkSpan = document.createElement('span');
+                if (option.dataset.domain === activeDomain) {
+                    checkSpan.innerHTML = checkmarkSVG;
+                }
+                li.appendChild(nameSpan);
+                li.appendChild(checkSpan);
+                li.addEventListener('click', () => {
+                    activeDomain = li.dataset.domain;
+                    agentSelectorBtn.textContent = nameSpan.textContent;
+                    agentModalOverlay.classList.add('hidden');
+                });
+                agentModalList.appendChild(li);
+            });
+        }
+
+        function openAgentModal() {
+            populateAgentModal();
+            agentModalOverlay.classList.remove('hidden');
+        }
+
+        function startNewConversation() {
+            activeConversationId = null;
+            chatWindow.innerHTML = '';
+            updateSidebarSelection();
+            activeDomain = 'auto';
+            agentSelectorBtn.textContent = 'Auto Detect';
+            displayMessage("Hello! I'm CogniVyu. How can I assist you today?", 'bot', 'Welcome');
+        }
+        
+        async function loadConversations() { try { const response = await fetch(`${API_URL}/conversations`, { headers: { 'Authorization': `Bearer ${accessToken}` } }); if (!response.ok) throw new Error('Failed to fetch conversations.'); const conversations = await response.json(); historyList.innerHTML = ''; if (conversations.length > 0) { conversations.forEach(conv => { const item = document.createElement('li'); item.className = 'history-item'; item.textContent = conv.title; item.dataset.conversationId = conv.id; item.addEventListener('click', () => loadMessages(conv.id)); historyList.appendChild(item); }); loadMessages(conversations[0].id); } else { startNewConversation(); } } catch (error) { console.error(error); startNewConversation(); } }
+        async function loadMessages(conversationId) { if (activeConversationId === conversationId) return; activeConversationId = conversationId; chatWindow.innerHTML = ''; updateSidebarSelection(); try { const response = await fetch(`${API_URL}/messages/${conversationId}`, { headers: { 'Authorization': `Bearer ${accessToken}` } }); if (!response.ok) throw new Error('Failed to fetch messages.'); const messages = await response.json(); messages.forEach(msg => { displayMessage(msg.human_message, 'user'); displayMessage(msg.bot_message, 'bot', msg.domain); }); } catch (error) { console.error(error); displayMessage('Could not load this conversation.', 'bot', 'System Error'); } }
+        function displayMessage(message, sender, domain = '') { const msgDiv = document.createElement('div'); msgDiv.className = `message ${sender}-message`; if (sender === 'bot') { const domainDiv = document.createElement('div'); domainDiv.className = 'domain'; domainDiv.textContent = domain; const contentDiv = document.createElement('div'); contentDiv.innerHTML = marked.parse(message.trim(), { gfm: true }); msgDiv.appendChild(domainDiv); msgDiv.appendChild(contentDiv); } else { msgDiv.textContent = message.trim(); } chatWindow.appendChild(msgDiv); chatWindow.scrollTop = chatWindow.scrollHeight; }
+        async function handleSendMessage(event) { event.preventDefault(); const userMessage = chatInput.value.trim(); if (!userMessage) return; displayMessage(userMessage, 'user'); chatInput.value = ''; showTypingIndicator(); try { const response = await fetch(`${API_URL}/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` }, body: JSON.stringify({ query: userMessage, conversation_id: activeConversationId, domain: activeDomain }) }); removeTypingIndicator(); if (!response.ok) throw new Error((await response.json()).detail || 'An error occurred.'); const data = await response.json(); displayMessage(data.answer, 'bot', data.domain); if (!activeConversationId) { await loadConversations(); } activeConversationId = data.conversation_id; updateSidebarSelection(); } catch (error) { removeTypingIndicator(); displayMessage(`Error: ${error.message}`, 'bot', 'System Error'); } }
+        function updateSidebarSelection() { document.querySelectorAll('.history-item').forEach(item => { item.classList.toggle('active', item.dataset.conversationId === activeConversationId); }); }
+        function showTypingIndicator() { const indicator = document.createElement('div'); indicator.id = 'typing-indicator'; indicator.className = 'typing-indicator'; indicator.innerHTML = '<span></span><span></span><span></span>'; chatWindow.appendChild(indicator); chatWindow.scrollTop = chatWindow.scrollHeight; }
+        function removeTypingIndicator() { const indicator = document.getElementById('typing-indicator'); if (indicator) indicator.remove(); }
+    </script>
+</body>
+</html>
